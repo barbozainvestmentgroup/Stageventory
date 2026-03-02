@@ -1,0 +1,397 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  OFFICE
+  WAREHOUSE
+  CREW
+}
+
+enum ItemCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  NEEDS_REPAIR
+  RETIRED
+}
+
+enum ItemStatus {
+  AVAILABLE
+  STAGED
+  IN_TRANSIT
+  MAINTENANCE
+  RETIRED
+}
+
+enum ProjectStatus {
+  CONSULTATION
+  PROPOSAL
+  CONTRACT
+  SCHEDULED
+  STAGED
+  ACTIVE
+  DESTAGE_SCHEDULED
+  DESTAGED
+  INVOICED
+  CLOSED
+}
+
+enum PricingType {
+  MONTHLY_RENTAL
+  FLAT_FEE
+}
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  VIEWED
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum ContractStatus {
+  DRAFT
+  SENT
+  VIEWED
+  SIGNED
+  EXPIRED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  VOID
+  PARTIAL
+}
+
+enum EventType {
+  CONSULTATION
+  STAGE
+  DESTAGE
+  MAINTENANCE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          UserRole  @default(CREW)
+  phone         String?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  inventoryHistory InventoryHistory[]
+  activityLogs     ActivityLog[]
+  notifications    Notification[]
+  projectsCreated  Project[]          @relation("CreatedBy")
+  crewEvents       ScheduleEvent[]    @relation("EventCrew")
+
+  @@map("users")
+}
+
+model Client {
+  id             String   @id @default(cuid())
+  companyName    String?  @map("company_name")
+  agentName      String   @map("agent_name")
+  email          String?
+  phone          String?
+  brokerage      String?
+  notes          String?
+  preferredStyle String?  @map("preferred_style")
+  rating         Int?     @default(0)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  properties Property[]
+  projects   Project[]
+
+  @@map("clients")
+}
+
+model Property {
+  id           String  @id @default(cuid())
+  clientId     String  @map("client_id")
+  address      String
+  city         String
+  state        String  @default("FL")
+  zip          String
+  sqft         Int?
+  bedrooms     Int?
+  bathrooms    Float?
+  listingPrice Float?  @map("listing_price")
+  mlsNumber    String? @map("mls_number")
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  client   Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projects Project[]
+
+  @@map("properties")
+}
+
+model InventoryItem {
+  id               String        @id @default(cuid())
+  sku              String        @unique
+  name             String
+  description      String?
+  category         String
+  subcategory      String?
+  photos           String[]      @default([])
+  length           Float?
+  width            Float?
+  height           Float?
+  color            String?
+  styleTags        String[]      @default([]) @map("style_tags")
+  purchaseCost     Float?        @map("purchase_cost")
+  purchaseDate     DateTime?     @map("purchase_date")
+  replacementValue Float?        @map("replacement_value")
+  condition        ItemCondition @default(GOOD)
+  status           ItemStatus    @default(AVAILABLE)
+  currentLocation  String?       @default("Warehouse") @map("current_location")
+  qrCode           String?       @map("qr_code")
+  notes            String?
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  history      InventoryHistory[]
+  projectItems ProjectItem[]
+  packageItems RoomPackageItem[]
+
+  @@map("inventory_items")
+}
+
+model InventoryHistory {
+  id         String   @id @default(cuid())
+  itemId     String   @map("item_id")
+  action     String
+  fromStatus String?  @map("from_status")
+  toStatus   String?  @map("to_status")
+  projectId  String?  @map("project_id")
+  userId     String   @map("user_id")
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  item    InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id])
+  project Project?      @relation(fields: [projectId], references: [id])
+
+  @@map("inventory_history")
+}
+
+model RoomPackage {
+  id          String  @id @default(cuid())
+  name        String
+  style       String?
+  roomType    String  @map("room_type")
+  description String?
+  totalCost   Float?  @map("total_cost")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  items        RoomPackageItem[]
+  projectItems ProjectItem[]
+
+  @@map("room_packages")
+}
+
+model RoomPackageItem {
+  id        String @id @default(cuid())
+  packageId String @map("package_id")
+  itemId    String? @map("item_id")
+  category  String?
+  quantity  Int    @default(1)
+
+  // Relations
+  package RoomPackage    @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  item    InventoryItem? @relation(fields: [itemId], references: [id])
+
+  @@map("room_package_items")
+}
+
+model Project {
+  id           String        @id @default(cuid())
+  propertyId   String        @map("property_id")
+  clientId     String        @map("client_id")
+  status       ProjectStatus @default(CONSULTATION)
+  stageDate    DateTime?     @map("stage_date")
+  destageDate  DateTime?     @map("destage_date")
+  pricingType  PricingType?  @map("pricing_type")
+  totalPrice   Float?        @map("total_price")
+  notes        String?
+  createdById  String        @map("created_by_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  property         Property           @relation(fields: [propertyId], references: [id])
+  client           Client             @relation(fields: [clientId], references: [id])
+  createdBy        User               @relation("CreatedBy", fields: [createdById], references: [id])
+  projectItems     ProjectItem[]
+  proposals        Proposal[]
+  contracts        Contract[]
+  invoices         Invoice[]
+  scheduleEvents   ScheduleEvent[]
+  inventoryHistory InventoryHistory[]
+
+  @@map("projects")
+}
+
+model ProjectItem {
+  id             String    @id @default(cuid())
+  projectId      String    @map("project_id")
+  itemId         String    @map("item_id")
+  packageId      String?   @map("package_id")
+  roomAssignment String?   @map("room_assignment")
+  checkedOutAt   DateTime? @map("checked_out_at")
+  checkedInAt    DateTime? @map("checked_in_at")
+
+  // Relations
+  project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  item    InventoryItem @relation(fields: [itemId], references: [id])
+  package RoomPackage?  @relation(fields: [packageId], references: [id])
+
+  @@map("project_items")
+}
+
+model Proposal {
+  id          String         @id @default(cuid())
+  projectId   String         @map("project_id")
+  version     Int            @default(1)
+  contentJson Json?          @map("content_json")
+  pdfUrl      String?        @map("pdf_url")
+  status      ProposalStatus @default(DRAFT)
+  sentAt      DateTime?      @map("sent_at")
+  approvedAt  DateTime?      @map("approved_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contracts Contract[]
+
+  @@map("proposals")
+}
+
+model Contract {
+  id          String         @id @default(cuid())
+  projectId   String         @map("project_id")
+  proposalId  String?        @map("proposal_id")
+  docusignId  String?        @map("docusign_id")
+  status      ContractStatus @default(DRAFT)
+  signedAt    DateTime?      @map("signed_at")
+  pdfUrl      String?        @map("pdf_url")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  proposal Proposal? @relation(fields: [proposalId], references: [id])
+
+  @@map("contracts")
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  projectId     String        @map("project_id")
+  invoiceNumber String        @unique @map("invoice_number")
+  amount        Float
+  tax           Float         @default(0)
+  total         Float
+  status        InvoiceStatus @default(DRAFT)
+  dueDate       DateTime?     @map("due_date")
+  paidDate      DateTime?     @map("paid_date")
+  quickbooksId  String?       @map("quickbooks_id")
+  lineItems     Json?         @map("line_items")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@map("invoices")
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  invoiceId String   @map("invoice_id")
+  amount    Float
+  method    String?
+  date      DateTime
+  reference String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model ScheduleEvent {
+  id          String    @id @default(cuid())
+  projectId   String    @map("project_id")
+  eventType   EventType @map("event_type")
+  date        DateTime
+  startTime   String?   @map("start_time")
+  endTime     String?   @map("end_time")
+  notes       String?
+  googleCalId String?   @map("google_cal_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  crew    User[]  @relation("EventCrew")
+
+  @@map("schedule_events")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  action     String
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("activity_log")
+}
