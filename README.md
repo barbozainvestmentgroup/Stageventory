@@ -19,11 +19,11 @@ Professional management platform for real estate staging companies. Built with N
 
 | Login Page | Dashboard |
 |:---:|:---:|
-| ![Login page](https://github.com/user-attachments/assets/5d3fa87e-c74e-4275-b9e9-819b0265c334) | ![Dashboard](https://github.com/user-attachments/assets/3b3a14e8-6cc3-4be6-8b33-40ae6b2969a6) |
+| ![Login page](https://github.com/user-attachments/assets/9761cf91-fbb7-4b62-a47d-870144104829) | ![Dashboard](https://github.com/user-attachments/assets/1df9edf4-52bd-4b1a-a4bf-f7c9100910e9) |
 
 | Inventory | Projects |
 |:---:|:---:|
-| ![Inventory management](https://github.com/user-attachments/assets/45a73168-e80d-4d22-b7b4-6020bda965ec) | ![Project pipeline](https://github.com/user-attachments/assets/7cc456bf-2e7b-429d-ade2-9d23d9d2fab3) |
+| ![Inventory management](https://github.com/user-attachments/assets/756ff349-eeea-483e-80ed-15fa159cb18e) | ![Project pipeline](https://github.com/user-attachments/assets/d84365d9-5118-413d-aa06-93842140d03b) |
 
 ---
 
