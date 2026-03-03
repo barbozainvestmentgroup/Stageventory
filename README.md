@@ -2,11 +2,18 @@
 
 Professional management platform for real estate staging companies. Built with Next.js, Prisma, and PostgreSQL.
 
-> **🟢 Want to see the app right now?** Click the button below — it opens the full working app in your browser in ~3 minutes, no install needed:
+> **🟢 Want to see the app right now?** No downloads, no setup — just a browser and a free GitHub account.
 >
-> [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/barbozainvestmentgroup/Stageventory?quickstart=1)
+> 1. **Sign in to GitHub** — if you don't have an account, [create one for free here](https://github.com/signup) (takes 1 minute).
+> 2. **Click the button below** to launch the app:
 >
-> Then log in with `admin@stageflow.com` / `password123`. See the [step-by-step guide](#option-1--open-in-github-codespaces-easiest-no-install-needed) below if you need help.
+>    [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/barbozainvestmentgroup/Stageventory?quickstart=1)
+>
+> 3. **Wait ~3 minutes** while it builds. A browser-based editor will appear; watch the terminal at the bottom for progress.
+> 4. When a popup says **"Open in Browser"**, click it. (Or go to the **Ports** tab and click 🌐 next to port 3000.)
+> 5. **Log in** with Email: `admin@stageflow.com` / Password: `password123`
+>
+> That's it — you're in! See the [detailed guide](#option-1--open-in-github-codespaces-easiest-no-install-needed) below if you need more help.
 
 ### App Preview
 
