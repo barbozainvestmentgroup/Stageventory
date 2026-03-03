@@ -7,7 +7,41 @@ Professional management platform for real estate staging companies. Built with N
 - [Node.js](https://nodejs.org/) 18+
 - [Docker](https://www.docker.com/) (recommended) **or** a local PostgreSQL 16 installation
 
-## Quick Start
+## Quick Start (one command)
+
+Make sure Docker is running, then:
+
+```bash
+npm run setup
+```
+
+This single command will:
+1. Install all dependencies
+2. Create your `.env` file with a generated secret
+3. Start a PostgreSQL database via Docker
+4. Create all database tables
+5. Seed the database with demo data
+
+Once setup finishes, start the app:
+
+```bash
+npm run dev
+```
+
+Open **http://localhost:3000** in your browser and log in with:
+
+| Field    | Value                  |
+|----------|------------------------|
+| Email    | `admin@stageflow.com`  |
+| Password | `password123`          |
+
+That's it! You should see the StageFlow dashboard.
+
+---
+
+## Manual Setup (step by step)
+
+If you prefer to set things up manually or don't have Docker:
 
 ### 1. Install dependencies
 
@@ -23,11 +57,7 @@ npm install
 docker compose up -d
 ```
 
-This starts a PostgreSQL 16 container with the default credentials already matching `.env.example`.
-
 **Option B — Local PostgreSQL:**
-
-Create a database and user, then update the `DATABASE_URL` in your `.env` file accordingly.
 
 ```sql
 CREATE USER stageflow WITH PASSWORD 'stageflow';
@@ -40,18 +70,18 @@ CREATE DATABASE stageflow OWNER stageflow;
 cp .env.example .env
 ```
 
-Edit `.env` if you changed any database credentials. Generate a proper `NEXTAUTH_SECRET`:
+Edit `.env` if you changed any database credentials. Generate a `NEXTAUTH_SECRET`:
 
 ```bash
 openssl rand -base64 32
 ```
 
-### 4. Set up the database schema and seed data
+### 4. Set up the database
 
 ```bash
-npx prisma generate     # Generate the Prisma client
-npx prisma db push      # Push schema to the database
-npm run db:seed          # Seed with demo data
+npx prisma generate
+npx prisma db push
+npm run db:seed
 ```
 
 ### 5. Start the development server
@@ -77,6 +107,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 | Command              | Description                           |
 |----------------------|---------------------------------------|
+| `npm run setup`      | **One-command full setup**            |
 | `npm run dev`        | Start development server              |
 | `npm run build`      | Build for production                  |
 | `npm run start`      | Start production server               |
