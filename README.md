@@ -6,16 +6,31 @@ Professional management platform for real estate staging companies. Built with N
 
 ### Option 1 — Open in GitHub Codespaces (easiest, no install needed)
 
-Click the button below to launch the full app in your browser — no local setup required:
+Launch the full app in your browser with zero installs. All you need is a free GitHub account.
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/barbozainvestmentgroup/Stageventory?quickstart=1)
+**Step-by-step:**
 
-Codespaces will automatically install dependencies, start the database, seed demo data, and open the app. Once it's ready, log in with:
+1. **Click the button below** (or the green **"<> Code"** button at the top of this repo → **Codespaces** tab → **"Create codespace on main"**):
 
-| Field    | Value                  |
-|----------|------------------------|
-| Email    | `admin@stageflow.com`  |
-| Password | `password123`          |
+   [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/barbozainvestmentgroup/Stageventory?quickstart=1)
+
+2. **Wait for the container to build** — a VS Code editor opens in your browser. In the bottom terminal you'll see progress messages as it installs dependencies, starts the database, and seeds demo data. This takes **2–4 minutes** the first time.
+
+3. **The dev server starts automatically** — once setup finishes, the app starts on port 3000. GitHub will show a toast notification saying **"Your application running on port 3000 is available"**. Click **"Open in Browser"** (or check the **Ports** tab at the bottom and click the globe icon 🌐 next to port 3000).
+
+4. **Log in** — you'll see the StageFlow login page. Enter the demo credentials:
+
+   | Field    | Value                  |
+   |----------|------------------------|
+   | Email    | `admin@stageflow.com`  |
+   | Password | `password123`          |
+
+5. **You're in!** — You should now see the StageFlow dashboard with sample data already loaded.
+
+> **💡 Tips:**
+> - Free GitHub accounts include **60 hours/month** of Codespaces usage — more than enough for exploring.
+> - Your codespace saves its state. You can close the browser and reopen it later from [github.com/codespaces](https://github.com/codespaces).
+> - To stop the codespace and avoid using hours, go to [github.com/codespaces](https://github.com/codespaces) and click **"…" → Stop codespace**.
 
 ### Option 2 — Deploy to Vercel (free, live URL)
 
