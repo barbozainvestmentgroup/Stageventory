@@ -1,8 +1,10 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Bell, LogOut, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Moon, Sun, Bell, LogOut, User, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,9 +17,56 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
+interface Notification {
+  id: string;
+  type: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
 export function Header() {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch("/api/notifications?unread=true");
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications || []);
+        setUnreadCount(data.notifications?.length || 0);
+      }
+    } catch {
+      // Silently fail - notifications are non-critical
+    }
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      fetchNotifications();
+      // Poll every 60 seconds
+      const interval = setInterval(fetchNotifications, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [session, fetchNotifications]);
+
+  const markAllRead = async () => {
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAllRead: true }),
+      });
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch {
+      // Silently fail
+    }
+  };
 
   const initials = session?.user?.name
     ?.split(" ")
@@ -53,12 +102,47 @@ export function Header() {
         </Button>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
-            3
-          </span>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuLabel className="flex items-center justify-between">
+              <span>Notifications</span>
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllRead}
+                  className="text-xs text-primary hover:underline font-normal flex items-center gap-1"
+                >
+                  <Check className="h-3 w-3" />
+                  Mark all read
+                </button>
+              )}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {notifications.length === 0 ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                No new notifications
+              </div>
+            ) : (
+              notifications.slice(0, 5).map((notification) => (
+                <DropdownMenuItem key={notification.id} className="flex flex-col items-start gap-1 p-3">
+                  <p className="text-sm">{notification.message}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(notification.createdAt).toLocaleDateString()}
+                  </p>
+                </DropdownMenuItem>
+              ))
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* User menu */}
         <DropdownMenu>
