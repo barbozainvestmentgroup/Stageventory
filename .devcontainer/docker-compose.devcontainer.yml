@@ -1,0 +1,13 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:22
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://stageflow:stageflow@db:5432/stageflow?schema=public"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+      # NEXTAUTH_SECRET is generated automatically by setup.sh

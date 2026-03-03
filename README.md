@@ -2,7 +2,44 @@
 
 Professional management platform for real estate staging companies. Built with Next.js, Prisma, and PostgreSQL.
 
-## Prerequisites
+## View the App
+
+### Option 1 — Open in GitHub Codespaces (easiest, no install needed)
+
+Click the button below to launch the full app in your browser — no local setup required:
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/barbozainvestmentgroup/Stageventory?quickstart=1)
+
+Codespaces will automatically install dependencies, start the database, seed demo data, and open the app. Once it's ready, log in with:
+
+| Field    | Value                  |
+|----------|------------------------|
+| Email    | `admin@stageflow.com`  |
+| Password | `password123`          |
+
+### Option 2 — Deploy to Vercel (free, live URL)
+
+1. Fork this repo
+2. Go to [vercel.com/new](https://vercel.com/new) and import your fork
+3. Add a PostgreSQL database (Vercel Postgres, Neon, Supabase, or any provider)
+4. Set these environment variables in Vercel:
+   - `DATABASE_URL` — your PostgreSQL connection string
+   - `NEXTAUTH_URL` — your Vercel deployment URL (e.g. `https://stageflow.vercel.app`)
+   - `NEXTAUTH_SECRET` — run `openssl rand -base64 32` to generate one
+5. Deploy — Vercel will build the Next.js app automatically
+6. Run these commands locally with your production `DATABASE_URL` set, to create tables and seed data:
+   ```bash
+   DATABASE_URL="your-production-connection-string" npx prisma db push
+   DATABASE_URL="your-production-connection-string" npm run db:seed
+   ```
+
+### Option 3 — Run locally
+
+See the [Quick Start](#quick-start-one-command) section below.
+
+---
+
+## Prerequisites (local development)
 
 - [Node.js](https://nodejs.org/) 18+
 - [Docker](https://www.docker.com/) (recommended) **or** a local PostgreSQL 16 installation
