@@ -1,13 +1,51 @@
-export default function ClientsPage() {
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions, hasPermission } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { ClientsList } from "./clients-list";
+
+export default async function ClientsPage() {
+  const session = await getServerSession(authOptions);
+  if (!session || !hasPermission(session.user.role, "clients:read")) {
+    redirect("/dashboard");
+  }
+
+  const clients = await prisma.client.findMany({
+    where: { active: true },
+    include: {
+      _count: {
+        select: {
+          properties: true,
+          projects: true,
+        },
+      },
+      projects: {
+        select: {
+          totalPrice: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const clientsData = clients.map((client) => {
+    const totalRevenue = client.projects.reduce(
+      (sum, p) => sum + (p.totalPrice || 0),
+      0
+    );
+    const { projects, ...rest } = client;
+    return {
+      ...rest,
+      totalRevenue,
+    };
+  });
+
+  const canWrite = hasPermission(session.user.role, "clients:write");
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Clients</h2>
-        <p className="text-muted-foreground">Manage your client relationships</p>
-      </div>
-      <div className="rounded-lg border border-dashed p-8 text-center">
-        <p className="text-muted-foreground">Coming soon in Phase 3</p>
-      </div>
-    </div>
+    <ClientsList
+      clients={JSON.parse(JSON.stringify(clientsData))}
+      canWrite={canWrite}
+    />
   );
 }
