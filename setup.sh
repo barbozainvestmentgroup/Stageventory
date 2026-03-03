@@ -34,20 +34,26 @@ else
 fi
 
 # ── 3. Start PostgreSQL via Docker Compose ───────────────────────────────────
-if command -v docker &>/dev/null; then
+if [ -n "$CODESPACES" ] || [ -n "$REMOTE_CONTAINERS" ]; then
+  echo "   ⏭️   Running in dev container — database is already provided"
+elif command -v docker &>/dev/null; then
   if docker compose ps --services --filter "status=running" 2>/dev/null | grep -q db; then
     echo "   ⏭️   PostgreSQL container already running"
   else
     echo "🐘  Starting PostgreSQL with Docker..."
-    docker compose up -d
-    echo "   ⏳  Waiting for PostgreSQL to be ready..."
-    for i in $(seq 1 30); do
-      if docker compose exec -T db pg_isready -U stageflow &>/dev/null; then
-        break
-      fi
-      sleep 1
-    done
-    echo "   ✅  PostgreSQL is running"
+    if docker compose up -d 2>&1; then
+      echo "   ⏳  Waiting for PostgreSQL to be ready..."
+      for i in $(seq 1 30); do
+        if docker compose exec -T db pg_isready -U stageflow &>/dev/null; then
+          break
+        fi
+        sleep 1
+      done
+      echo "   ✅  PostgreSQL is running"
+    else
+      echo "   ⚠️  Could not start Docker container (port may already be in use)"
+      echo "   Continuing with existing database..."
+    fi
   fi
 else
   echo ""
@@ -57,6 +63,19 @@ else
   echo "   or set up PostgreSQL manually and update DATABASE_URL in .env"
   echo ""
 fi
+
+# ── 3b. Wait for database to accept connections ─────────────────────────────
+echo "⏳  Checking database connection..."
+for i in $(seq 1 30); do
+  if npx prisma db execute --stdin <<< "SELECT 1" >/dev/null 2>&1; then
+    echo "   ✅  Database is reachable"
+    break
+  fi
+  if [ "$i" -eq 30 ]; then
+    echo "   ⚠️  Could not verify database connection — continuing anyway"
+  fi
+  sleep 1
+done
 
 # ── 4. Generate Prisma client ────────────────────────────────────────────────
 echo "🔧  Generating Prisma client..."
